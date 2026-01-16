@@ -7,7 +7,7 @@ export const getNews = async (topic: string, location: string) => {
   try {
     console.log(`STABLE FETCH: Topic=${topic}, Location=${location}`);
     
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Find 3 recent news articles about ${topic} in ${location}. 
     Return them as a JSON array with: title, description, url, and source.`;
