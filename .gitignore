@@ -1,0 +1,29 @@
+# 1. Environment variables (CRITICAL SECURITY)
+# Prevents your private API keys from being leaked to GitHub
+.env
+*.local
+
+# 2. Dependencies
+# These are re-installed by Vercel; no need to upload them
+node_modules/
+#
+
+# 3. Build outputs
+# Files generated when you compile your React/Vite project
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# 4. Editor-specific files
+# Clutter from VS Code or other IDEs
+.vscode/
+.DS_Store
+*.swp
+
+# 5. Logs
+# Error and debug reports
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*.env
+node_modules
+dist
