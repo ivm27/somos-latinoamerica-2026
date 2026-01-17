@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-// FIXED: Extensionless imports for Vercel/Vite production stability
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import NewsGrid from './components/NewsGrid';
@@ -17,7 +16,6 @@ const AppContent: React.FC = () => {
   const [loading, setLoading] = useState(true); 
   const [selectedCountry, setSelectedCountry] = useState<string>('All Latin America'); 
   
-  // selectedTopic is updated by Navigation.tsx and consumed here
   const { t, language, selectedTopic } = useLanguage();
 
   const toggleTheme = () => {
@@ -28,16 +26,32 @@ const AppContent: React.FC = () => {
   const loadArticles = useCallback(async () => {
     setLoading(true);
     try {
-      // Logic: If "All Latin America" is picked, we send undefined to show everything
       const locationFilter = (selectedCountry === 'All Latin America') ? undefined : selectedCountry;
       
-      // We pass the language, the clean category (topic), and the country
       const fetched = await fetchRealNews(language, selectedTopic || undefined, locationFilter);
       
-      setArticles(fetched);
+      // FIX: Ensure 'fetched' is an array and map properties to match the Article type
+      // This prevents blank cards if the AI uses names like "headline" or "content"
+      if (Array.isArray(fetched)) {
+        const sanitizedArticles: Article[] = fetched.map((item: any, index: number) => ({
+          id: item.id || `news-${index}`,
+          title: item.title || item.headline || 'No Title Available',
+          description: item.description || item.summary || item.content || '',
+          url: item.url || item.link || '#',
+          source: item.source || 'News Source',
+          image: item.image || item.imageUrl || `https://source.unsplash.com/featured/?${selectedTopic || 'news'}`,
+          category: selectedTopic || 'General',
+          date: item.date || new Date().toLocaleDateString()
+        }));
+        
+        console.log("SANITIZED DATA:", sanitizedArticles);
+        setArticles(sanitizedArticles);
+      } else {
+        setArticles([]);
+      }
     } catch (e) {
-      console.error("Fetch error:", e);
-      setArticles([]); // Fallback to empty state on error
+      console.error("Fetch error in App.tsx:", e);
+      setArticles([]); 
     } finally {
       setLoading(false);
     }
@@ -72,7 +86,6 @@ const AppContent: React.FC = () => {
         countries={['All Latin America', ...COUNTRIES]} 
       />
       <Navigation />
-      {/* NewsGrid receives the articles fetched from Gemini */}
       <NewsGrid articles={articles} loading={loading} onRefresh={loadArticles} />
       <LiveUploadModal />
       <footer className="py-10 text-center text-gray-400 text-sm">
