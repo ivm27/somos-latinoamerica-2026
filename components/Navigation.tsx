@@ -3,25 +3,24 @@ import { useLanguage } from '../LanguageContext';
 import { ChevronDown } from 'lucide-react';
 
 const Navigation: React.FC = () => {
-  // We pull 'language' directly so the component re-renders when the language changes
   const { t, language, selectedTopic, setSelectedTopic } = useLanguage();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [dropdownPos, setDropdownPos] = useState<{top: number, left: number} | null>(null);
 
-  // These keys are used to look up translations in your JSON files
   const tabKeys = ['Arte', 'Ciencias', 'Clima', 'Comunidades', 'Deportes', 'Derechos', 'Educacion', 'LGBTQ', 'Negocios', 'Politica', 'Salud'];
   const businessFilters = ['economy', 'finance', 'markets', 'technology'];
   const artFilters = ['dance', 'film', 'literature', 'music', 'television', 'theater', 'visual_arts'];
 
-  // REACITVE: sortedTabs now strictly depends on [language]
-  // When you switch to Deutsch, this will instantly re-sort and re-translate the labels
   const sortedTabs = useMemo(() => {
+    // FIX: Extract just the 2-letter code (e.g., 'es') for the localeCompare
+    const localeCode = language.substring(0, 2).toLowerCase();
+
     return tabKeys
       .map(key => ({ 
         key, 
-        label: t(`tabs.${key}`) // Ensure your translation files have "tabs.Arte", etc.
+        label: t(`tabs.${key}`) 
       }))
-      .sort((a, b) => a.label.localeCompare(b.label, language)); // Locale-aware sorting
+      .sort((a, b) => a.label.localeCompare(b.label, localeCode)); 
   }, [language, t]);
 
   const handleTabClick = (key: string, e: React.MouseEvent<HTMLButtonElement>) => {
@@ -38,7 +37,6 @@ const Navigation: React.FC = () => {
     } else {
       const rect = e.currentTarget.getBoundingClientRect();
       setActiveDropdown(key);
-      // We calculate position relative to viewport to avoid scroll issues
       setDropdownPos({ top: rect.bottom + 4, left: rect.left });
     }
   };
@@ -46,7 +44,7 @@ const Navigation: React.FC = () => {
   useEffect(() => {
     const close = () => { setActiveDropdown(null); };
     window.addEventListener('click', close);
-    window.addEventListener('scroll', close); // Close on scroll for better UX
+    window.addEventListener('scroll', close);
     return () => {
       window.removeEventListener('click', close);
       window.removeEventListener('scroll', close);
@@ -97,7 +95,6 @@ const Navigation: React.FC = () => {
               }} 
               className="w-full text-left px-5 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-700 dark:text-neutral-300 hover:text-brand-orange transition-colors"
             >
-              {/* REACITVE SUBMENU: Uses global t function */}
               {t(`${activeDropdown === 'Negocios' ? 'business_submenu' : 'art_submenu'}.${f}`)}
             </button>
           ))}
