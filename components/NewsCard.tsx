@@ -9,7 +9,7 @@ import { GLOBAL_LANGUAGES, INDIGENOUS_LANGUAGES } from '../constants';
 import { useLanguage } from '../LanguageContext';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Custom Social Icons
+// Your Custom SVG Icons
 const BlueskyIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 566 500" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
      <path d="M135.72 44.03c66.496 49.921 113.224 118.839 124.28 155.475 2.601 8.621 4.644 15.179 5.99 21.047 1.346-5.868 3.389-12.426 5.99-21.047 11.056-36.636 57.784-105.554 124.28-155.475 23.243-17.448 135.723-97.051 135.723-12.027 0 26.304-4.253 44.185-9.715 57.175-19.462 46.289-98.384 128.718-124.779 152.884-38.22 34.994-67.434 26.473-20.725 106.775 30.739 52.85 91.564 96.657 122.39 100.957 26.34 3.674 48.973 1.04 43.197-30.081-3.329-17.935-13.623-28.761-19.896-33.879-43.136-35.19-86.328-36.31-103.543-30.569-42.502 14.175-35.592 73.742 22.846 64.954 62.463-9.395 117.84-51.758 134.137-123.288 1.487-6.529 6.25-33.229 2.064-59.563-8.834-55.572-51.488-84.18-87.892-93.571-33.72-8.7-72.336 2.09-106.84 31.81-42.368 36.495-81.565 89.263-100.34 114.735l-15 20.25-15-20.25c-18.775-25.472-57.972-78.24-100.34-114.735-34.504-29.72-73.12-40.51-106.84-31.81-36.404 9.391-79.058 37.999-87.892 93.571-4.186 26.334.577 53.034 2.064 59.563 16.297 71.53 71.674 113.893 134.137 123.288 58.438 8.788 65.348-50.779 22.846-64.954-17.215-5.741-60.407-4.621-103.543 30.569-6.273 5.118-16.567 15.944-19.896 33.879-5.776 31.121 16.857 33.755 43.197 30.081 30.826-4.3 91.651-48.107 122.39-100.957 46.709-80.302 17.495-71.781-20.725-106.775-26.395-24.166-105.317-106.595-124.779-152.884-5.462-12.99-9.715-30.871-9.715-57.175 0-85.024 112.48-5.421 135.723 12.027z"/>
@@ -90,7 +90,6 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedContent, setTranslatedContent] = useState<{title: string, description: string} | null>(null);
   
-  // FIXED: Destructure changeLanguage to update Global UI
   const { t, changeLanguage } = useLanguage();
 
   const displayTitle = translatedContent?.title || article.title;
@@ -131,14 +130,22 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
     handleTranslation();
   }, [selectedLanguage, article.title, article.description]);
 
-  // FIXED: Handle language change for BOTH Global UI and Local Content
+  // FIXED: Explicit mapping of display names to ISO codes
   const onLanguageSelect = (lang: string) => {
     setSelectedLanguage(lang);
     setIsTranslateOpen(false);
 
-    // If it is a global language, update the Navigation and UI labels
     if (GLOBAL_LANGUAGES.includes(lang as any) || lang === 'Original') {
-      const langCode = lang === 'Original' ? 'es' : lang.toLowerCase().substring(0, 2);
+      let langCode = 'es';
+      if (lang !== 'Original') {
+        const mapping: { [key: string]: string } = {
+          'English': 'en',
+          'Deutsch': 'de',
+          'French': 'fr',
+          'Portuguese': 'pt'
+        };
+        langCode = mapping[lang] || lang.toLowerCase().substring(0, 2);
+      }
       changeLanguage(langCode);
     }
   };
@@ -174,45 +181,40 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
   };
 
   return (
-    <article 
-        onClick={() => article.url && window.open(article.url, '_blank')}
-        className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer group relative overflow-hidden"
-    >
-      <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-neutral-800">
+    <article className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800 hover:shadow-xl transition-all flex flex-col h-full overflow-hidden">
+      <div className="relative h-56 bg-gray-100 dark:bg-neutral-800">
         {imageError ? (
             <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={48} /></div>
         ) : (
-            <img src={article.image} alt={article.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-all duration-700" onError={() => setImageError(true)} />
+            <img src={article.image} alt={article.title} className="w-full h-full object-cover" onError={() => setImageError(true)} />
         )}
         <div className="absolute top-4 left-4">
-             <span className="px-2.5 py-1 bg-brand-orange text-white text-[10px] font-black uppercase rounded-md shadow-sm">{article.category}</span>
+             <span className="px-2.5 py-1 bg-brand-orange text-white text-[10px] font-black uppercase rounded-md">{article.category}</span>
         </div>
       </div>
 
       <div className="p-6 flex flex-col flex-grow">
-        <h2 className={`text-xl font-bold text-gray-900 dark:text-neutral-200 mb-3 line-clamp-3 group-hover:text-brand-orange transition-all ${isTranslating ? 'blur-sm opacity-50' : ''}`}>
+        <h2 className={`text-xl font-bold text-gray-900 dark:text-neutral-200 mb-3 line-clamp-3 group-hover:text-brand-orange ${isTranslating ? 'blur-sm' : ''}`}>
           {displayTitle}
         </h2>
-
         <div className="flex items-center text-gray-400 text-[10px] font-semibold mb-4 gap-2">
             <span>📅 {article.date}</span>
-            {isTranslating && <span className="ml-auto flex items-center gap-1 text-brand-orange animate-pulse"><Loader2 size={10} className="animate-spin" /> AI Translating...</span>}
+            {isTranslating && <span className="ml-auto text-brand-orange animate-pulse"><Loader2 size={10} className="animate-spin inline mr-1" /> Translating...</span>}
         </div>
-
         <div className="mb-6 flex-grow">
-            <p className={`text-gray-600 dark:text-neutral-400 text-sm leading-relaxed transition-all ${isTranslating ? 'blur-sm opacity-50' : ''} ${isExpanded ? '' : 'line-clamp-3'}`}>
+            <p className={`text-gray-600 dark:text-neutral-400 text-sm leading-relaxed ${isExpanded ? '' : 'line-clamp-3'} ${isTranslating ? 'blur-sm' : ''}`}>
               {displayDescription}
             </p>
-            <button onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }} className="text-brand-orange text-xs font-bold mt-2 flex items-center gap-1">
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-brand-orange text-xs font-bold mt-2 flex items-center gap-1">
                 {isExpanded ? t('read_less') : t('read_more')} <ChevronDown size={12} className={isExpanded ? 'rotate-180' : ''} />
             </button>
         </div>
 
-        <div className="flex flex-col gap-4 mt-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex flex-col gap-4 mt-auto">
             <div className="flex items-center justify-between">
                 <div className="relative">
                     <button onClick={() => setIsTranslateOpen(!isTranslateOpen)} className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700 text-gray-600 dark:text-neutral-400">
-                        <Globe size={12} /> <span className="max-w-[80px] truncate">{selectedLanguage}</span> <ChevronDown size={12} className={isTranslateOpen ? 'rotate-180' : ''} />
+                        <Globe size={12} /> <span className="max-w-[80px] truncate">{selectedLanguage}</span> <ChevronDown size={12} />
                     </button>
                     {isTranslateOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-gray-100 dark:border-neutral-800 py-2 max-h-60 overflow-y-auto z-50">
@@ -222,13 +224,11 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
                         </div>
                     )}
                 </div>
-
                 <div className="flex items-center gap-2 relative">
-                    <button onClick={() => setIsCommentsOpen(!isCommentsOpen)} className={`p-2 rounded-full ${isCommentsOpen ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}><MessageSquare size={16} /></button>
-                    <button onClick={() => setIsShareOpen(!isShareOpen)} className={`p-2 rounded-full ${isShareOpen ? 'bg-green-50 text-green-600' : 'text-gray-400 hover:text-gray-600'}`}><Share2 size={16} /></button>
-                    
+                    <button onClick={() => setIsCommentsOpen(!isCommentsOpen)} className="p-2 text-gray-400 hover:text-gray-600"><MessageSquare size={16} /></button>
+                    <button onClick={() => setIsShareOpen(!isShareOpen)} className="p-2 text-gray-400 hover:text-gray-600"><Share2 size={16} /></button>
                     {isShareOpen && (
-                        <div className="absolute bottom-full right-0 mb-3 w-[290px] bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-4 z-50" onClick={(e) => e.stopPropagation()}>
+                        <div className="absolute bottom-full right-0 mb-3 w-[290px] bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-4 z-50">
                             <div className="grid grid-cols-4 gap-4 mb-4">
                             {shareOptions.map((opt) => (
                                 <button key={opt.name} onClick={() => handleShare(opt.name)} className="flex flex-col items-center gap-1.5">
@@ -239,7 +239,7 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
                             </div>
                             <div className="flex items-center bg-gray-50 dark:bg-neutral-800 rounded-xl p-1.5 border border-gray-200">
                                 <input readOnly value={article.url} className="flex-1 px-3 bg-transparent border-none text-xs text-gray-600 truncate" />
-                                <button onClick={() => { navigator.clipboard.writeText(article.url); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white ${copied ? 'bg-emerald-500' : 'bg-blue-500'}`}>{copied ? <Check size={14} /> : <Copy size={14} />}</button>
+                                <button onClick={() => { navigator.clipboard.writeText(article.url || ''); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white ${copied ? 'bg-emerald-500' : 'bg-blue-500'}`}>{copied ? <Check size={14} /> : 'Copy'}</button>
                             </div>
                         </div>
                     )}
