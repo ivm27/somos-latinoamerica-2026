@@ -9,7 +9,7 @@ import { GLOBAL_LANGUAGES, INDIGENOUS_LANGUAGES } from '../constants';
 import { useLanguage } from '../LanguageContext';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Re-using your custom SVG icons
+// Custom Social Icons
 const BlueskyIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 566 500" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
      <path d="M135.72 44.03c66.496 49.921 113.224 118.839 124.28 155.475 2.601 8.621 4.644 15.179 5.99 21.047 1.346-5.868 3.389-12.426 5.99-21.047 11.056-36.636 57.784-105.554 124.28-155.475 23.243-17.448 135.723-97.051 135.723-12.027 0 26.304-4.253 44.185-9.715 57.175-19.462 46.289-98.384 128.718-124.779 152.884-38.22 34.994-67.434 26.473-20.725 106.775 30.739 52.85 91.564 96.657 122.39 100.957 26.34 3.674 48.973 1.04 43.197-30.081-3.329-17.935-13.623-28.761-19.896-33.879-43.136-35.19-86.328-36.31-103.543-30.569-42.502 14.175-35.592 73.742 22.846 64.954 62.463-9.395 117.84-51.758 134.137-123.288 1.487-6.529 6.25-33.229 2.064-59.563-8.834-55.572-51.488-84.18-87.892-93.571-33.72-8.7-72.336 2.09-106.84 31.81-42.368 36.495-81.565 89.263-100.34 114.735l-15 20.25-15-20.25c-18.775-25.472-57.972-78.24-100.34-114.735-34.504-29.72-73.12-40.51-106.84-31.81-36.404 9.391-79.058 37.999-87.892 93.571-4.186 26.334.577 53.034 2.064 59.563 16.297 71.53 71.674 113.893 134.137 123.288 58.438 8.788 65.348-50.779 22.846-64.954-17.215-5.741-60.407-4.621-103.543 30.569-6.273 5.118-16.567 15.944-19.896 33.879-5.776 31.121 16.857 33.755 43.197 30.081 30.826-4.3 91.651-48.107 122.39-100.957 46.709-80.302 17.495-71.781-20.725-106.775-26.395-24.166-105.317-106.595-124.779-152.884-5.462-12.99-9.715-30.871-9.715-57.175 0-85.024 112.48-5.421 135.723 12.027z"/>
@@ -90,9 +90,9 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedContent, setTranslatedContent] = useState<{title: string, description: string} | null>(null);
   
-  const { t } = useLanguage();
+  // FIXED: Destructure changeLanguage to update Global UI
+  const { t, changeLanguage } = useLanguage();
 
-  // FIX: These names now match the "SANITIZED DATA" properties from App.tsx
   const displayTitle = translatedContent?.title || article.title;
   const displayDescription = translatedContent?.description || article.description;
 
@@ -130,6 +130,18 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
     };
     handleTranslation();
   }, [selectedLanguage, article.title, article.description]);
+
+  // FIXED: Handle language change for BOTH Global UI and Local Content
+  const onLanguageSelect = (lang: string) => {
+    setSelectedLanguage(lang);
+    setIsTranslateOpen(false);
+
+    // If it is a global language, update the Navigation and UI labels
+    if (GLOBAL_LANGUAGES.includes(lang as any) || lang === 'Original') {
+      const langCode = lang === 'Original' ? 'es' : lang.toLowerCase().substring(0, 2);
+      changeLanguage(langCode);
+    }
+  };
 
   const shareOptions = [
     { name: 'Bluesky', icon: BlueskyIcon, bg: 'bg-[#0560FF] dark:bg-[#0560FF]/60' }, 
@@ -205,7 +217,7 @@ const NewsCard: React.FC<{ article: Article }> = React.memo(({ article }) => {
                     {isTranslateOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-gray-100 dark:border-neutral-800 py-2 max-h-60 overflow-y-auto z-50">
                              {['Original', ...GLOBAL_LANGUAGES, ...INDIGENOUS_LANGUAGES].map(lang => (
-                                 <div key={lang} onClick={() => { setSelectedLanguage(lang); setIsTranslateOpen(false); }} className="px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer text-gray-700 dark:text-neutral-300">{lang}</div>
+                                 <div key={lang} onClick={() => onLanguageSelect(lang)} className="px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer text-gray-700 dark:text-neutral-300">{lang}</div>
                              ))}
                         </div>
                     )}
