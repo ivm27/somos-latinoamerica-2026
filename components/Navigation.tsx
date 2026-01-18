@@ -11,12 +11,21 @@ const Navigation: React.FC = () => {
   const businessFilters = ['economy', 'finance', 'markets', 'technology'];
   const artFilters = ['dance', 'film', 'literature', 'music', 'television', 'theater', 'visual_arts'];
 
-  // REACTIVE FIX: Ensure we use a valid locale tag for sorting
+  // REACTIVE FIX: Updated with safety checks to prevent RangeErrors
   const sortedTabs = useMemo(() => {
-    const localeCode = language.substring(0, 2).toLowerCase();
-    return tabKeys
-      .map(key => ({ key, label: t(`tabs.${key}`) }))
-      .sort((a, b) => a.label.localeCompare(b.label, localeCode)); 
+    // Check if language is a valid 2-letter code; otherwise default to 'es'
+    const safeLocale = (language && language.length === 2) 
+      ? language.toLowerCase() 
+      : 'es';
+
+    try {
+      return tabKeys
+        .map(key => ({ key, label: t(`tabs.${key}`) }))
+        .sort((a, b) => a.label.localeCompare(b.label, safeLocale)); 
+    } catch (e) {
+      // Emergency fallback if browser sorting fails
+      return tabKeys.map(key => ({ key, label: t(`tabs.${key}`) }));
+    }
   }, [language, t]);
 
   const handleTabClick = (key: string, e: React.MouseEvent<HTMLButtonElement>) => {
