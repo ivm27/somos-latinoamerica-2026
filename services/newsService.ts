@@ -1,22 +1,25 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// NEW: Import from the stable 2026 SDK you just installed
+import { GoogleGenAI } from "@google/genai";
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+// Initialize the client directly with the API key
+const ai = new GoogleGenAI({ apiKey });
+
 export const getNews = async (language: string, topic: string) => {
-  // Use the standard constructor; it defaults to the stable v1 API in 2026
-  const genAI = new GoogleGenerativeAI(apiKey);
-  
   try {
-    // Explicitly using the stable model ID to stop the 404 error
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // This call now correctly uses the stable v1 path automatically
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: [{
+        role: 'user',
+        parts: [{ text: `Find 3 recent news articles about ${topic} in ${language}. 
+                         Return ONLY a JSON array: [{"title": "...", "description": "...", "url": "...", "source": "...", "image": "..."}]` }]
+      }]
+    });
 
-    const prompt = `Find 3 news articles about ${topic} in ${language}. 
-    Return ONLY JSON: [{"title": "...", "description": "...", "url": "...", "source": "...", "image": "..."}]`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().replace(/```json|```/gi, "").trim();
-    
+    // Extract the text content from the new response format
+    const text = response.text.replace(/```json|```/gi, "").trim();
     return JSON.parse(text);
   } catch (error) {
     console.error("News Fetch Error:", error);
