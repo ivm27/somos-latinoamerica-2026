@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 export const getNews = async (language: string, topic: string, location: string) => {
-  // We specify the stable connection to fix the 404 error
+  // We specify the stable v1 connection
   const genAI = new GoogleGenerativeAI(apiKey);
   
   try {
