@@ -1,15 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  define: {
-    // This handles any libraries that still look for 'process.env'
-    'process.env': {}
-  },
   build: {
+    // Explicitly tells Vite the entry point is index.html in the root
+    rollupOptions: {
+      input: './index.html'
+    },
+    // Ensures the output goes to a fresh 'dist' folder
     outDir: 'dist',
-    target: 'esnext' // Ensures it supports the modern code Gemini uses
+    emptyOutDir: true
   }
-})
+});
