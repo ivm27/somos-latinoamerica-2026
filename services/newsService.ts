@@ -1,16 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+// The library defaults to the stable v1 API when initialized like this
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export const getNews = async (language: string, topic: string) => {
-  // Use the standard constructor which defaults to the stable v1 API
-  const genAI = new GoogleGenerativeAI(apiKey);
-  
   try {
-    // This model is now fully supported on the stable track
+    // We use the stable model name without any beta prefixes
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `Find 3 real news articles about ${topic} in ${language}. 
+    const prompt = `Find 3 news articles about ${topic} in ${language}. 
     Return ONLY JSON: [{"title": "...", "description": "...", "url": "...", "source": "...", "image": "..."}]`;
 
     const result = await model.generateContent(prompt);
