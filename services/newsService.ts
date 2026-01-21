@@ -8,9 +8,9 @@ export const getNews = async (language: string, topic: string) => {
     // This uses the stable v1 endpoint for 2026
     const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',
-      contents: [{ role: 'user', parts: [{ text: `Find 3 news items for ${topic} in ${language}. Return JSON.` }] }]
+      contents: [{ role: 'user', parts: [{ text: `Find 3 news about ${topic} in ${language}. Return JSON.` }] }]
     });
-    // Fix: In the new SDK, .text() is a function
+    // Fix: In the 2026 SDK, text is accessed via .text()
     const text = response.text().replace(/```json|```/gi, "").trim();
     return JSON.parse(text);
   } catch (error) {
